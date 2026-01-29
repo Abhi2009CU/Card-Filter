@@ -1,18 +1,20 @@
 package Filters;
 
+import Interfaces.Drawable;
 import Interfaces.PixelFilter;
 import core.DImage;
+import processing.core.PApplet;
 
-import java.awt.*;
 import java.util.ArrayList;
 
-public class CardFilter implements PixelFilter {
+public class CardFilter implements PixelFilter, Drawable {
     short white = 255, black = 0;
+    ArrayList<int[]> corners = new ArrayList<>();
 
     @Override
     public DImage processImage(DImage img) {
         DImage vImage = edge(vihanify(img));
-
+        corners = findCorners(vImage);
         return vImage;
     }
 
@@ -23,7 +25,7 @@ public class CardFilter implements PixelFilter {
 
         for (int r = 0; r < red.length; r++){
             for (int c = 0; c < red[r].length; c++) {
-                if (distToWhite(red[r][c], green[r][c], blue[r][c])<15){
+                if (red[r][c] + green[r][c] + blue[r][c] > 600){
                     red[r][c] = white;
                     green[r][c] = white;
                     blue[r][c] = white;
@@ -36,10 +38,6 @@ public class CardFilter implements PixelFilter {
         }
         vImage.setColorChannels(red, green, blue);
         return vImage;
-    }
-    public double distToWhite(int r, int g, int b){
-
-        return Math.sqrt(Math.pow(255-r,2)+Math.pow(255-g,2)+Math.pow(255-b,2));
     }
 
     public DImage edge(DImage vImage){
@@ -57,11 +55,47 @@ public class CardFilter implements PixelFilter {
         return edges;
     }
 
-    public ArrayList findCorners(DImage vImage){
-        ArrayList<int[][]> corners = new ArrayList<>();
+    public ArrayList<int[]> findCorners(DImage vImage) {
+        short[][] image = vImage.getBWPixelGrid();
 
-        return corners;
+        ArrayList<int[]> points = new ArrayList<>();
+
+        for (int r = 0; r < image.length; r++) {
+            for (int c = 0; c < image[r].length; c++) {
+                if (Math.abs(image[r][c] - white) < 20) {
+
+                }
+            }
+        }
+
+        return new ArrayList<>();
+
+    }
+
+    public ArrayList<int[]> findCorners(DImage vImage, int num){
+        short[][] bwpic = vImage.getBWPixelGrid();
+        ArrayList<int[]> lefttopcorners = new ArrayList<>();
+
+        for (int r = 0; r < bwpic.length; r++) {
+            for (int c = 0; c < bwpic[r].length; c++) {
+                if (Math.abs(bwpic[r][c] - white) < 20
+                        && Math.abs(bwpic[r][c-1] - white) > 20
+                        && Math.abs(bwpic[r][c+1] - white) < 20
+                        && Math.abs(bwpic[r+1][c] - white) < 20
+                        && Math.abs(bwpic[r-1][c] - white) > 20
+                ){
+                    lefttopcorners.add(new int[]{c,r});
+                }
+            }
+        }
+        return lefttopcorners;
     }
 
 
+    @Override
+    public void drawOverlay(PApplet window, DImage original, DImage filtered) {
+        for (int[] corner : corners){
+            window.ellipse(corner[0], corner[1], 10, 10);
+        }
+    }
 }
