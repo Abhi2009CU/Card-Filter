@@ -8,15 +8,15 @@ import processing.core.PApplet;
 
 import java.util.ArrayList;
 
-public class CardFilter implements PixelFilter, Drawable {
+public class tdsye implements PixelFilter, Drawable {
     short white = 255, black = 0;
     ArrayList<int[]> corners = new ArrayList<>();
 
     @Override
     public DImage processImage(DImage img) {
-        DImage vImage = edge(vihanify(img));
-//take the innermost part of the card trace and remove all the pixels inside of it so we take out the shape
-        findEdges(vImage);
+        DImage vImage = (vihanify(img));
+        //take the innermost part of the card trace and remove all the pixels inside of it so we take out the shape
+        //findEdges(vImage);
         return vImage;
     }
 
@@ -65,36 +65,43 @@ public class CardFilter implements PixelFilter, Drawable {
         int[] rotR = {-1,-1, 0, 1, 1, 1, 0,-1};
         int[] rotC = { 0, 1, 1, 1, 0,-1,-1,-1};
         int sDir = 0;
-        outer:
+        boolean foundPoint = false;
         do {
+            foundPoint = false;
             visited[curRow][curCol] = 1;
-            for (int i = 0; i < 9; i++) {
-                int stepR = rotR[(sDir + i) % 8];
-                int stepC = rotC[(sDir + i) % 8];
-                if(i==8){
-                    break outer;
-                }
-                if (curRow + stepR >= 0 && curRow + stepR < grid.length &&
-                        curCol + stepC >= 0 && curCol + stepC < grid[0].length &&
-                        grid[curRow + stepR][curCol + stepC] == white &&
-                        visited[curRow + stepR][curCol + stepC] != 1) {
-                    points.add(new int[]{curRow + stepR, curCol + stepC});
-                    //System.out.println(curRow +" "+ curCol + ", " + (stepR +" "+ stepC));
-                    visited[curRow][curCol] = 1;
+            for (int i = 0; i < 8; i++) {
+                int stepR = rotR[(sDir+i)%8];
+                int stepC = rotC[(sDir+i)%8];
+                if(grid[curRow+stepR][curCol+stepC] == white && visited[curRow+stepR][curCol+stepC] != 1){
+                    points.add(new int[]{curRow+stepR, curCol+stepC});
                     curRow += stepR;
                     curCol += stepC;
-                    sDir = (i + 4 + sDir) % 8;
+                    sDir = (i+4+sDir)%8;
+                    foundPoint = true;
                     break;
                 }
             }
-        } while (!(r == curRow && c == curCol));
 
+//            outer:
+//            for (int tickR = 1; tickR <= 4; tickR++) {
+//                for (int tickC = 1; tickC <= 4; tickC++) {
+//                    int midR = tickR%2==0 ? tickR : -tickR;
+//                    int midC = tickC%2==0 ? tickC : -tickC;
+//                    int stepR = midR<2 ? midR/Math.abs(midR) : midR/Math.abs(midR)*2;
+//                    int stepC = midC<2 ? midC/Math.abs(midC) : midC/Math.abs(midC)*2;
+//                    if(grid[curRow+stepR][curCol+stepC] == white){
+//                        points.add(new int[]{curRow+stepR, curCol+stepC});
+//                        grid[curRow+stepR][curCol+stepC] = 127;
+//                        curRow += stepR;
+//                        curCol += stepC;
+//                        break outer;
+//                    }
+//                }
+//            }
+        } while (!(r==curRow && c==curCol) && foundPoint);
         for (int i = 0; i < points.size(); i++) {
-            grid[points.get(i)[0]][points.get(i)[1]] = 0;
+            grid[points.get(i)[0]][points.get(i)[1]] = 127;
         }
-        vImage.setPixels(grid);
-        System.out.println(points.size() + "list length");
-
         return points;
     }
 
@@ -105,26 +112,13 @@ public class CardFilter implements PixelFilter, Drawable {
             for (int c = 0; c < vImage.getWidth(); c++) {
                 if(grid[r][c] == white){
                     System.out.println(r+ ", "+c);
-                    if(edges.isEmpty()) edges.add(new Edge(traceEdge(r, c, vImage)));
-                    else if (!pointAlreadyFound(edges, r, c)) edges.add(new Edge(traceEdge(r, c, vImage)));
+                    ArrayList<int[]> edge = traceEdge(r, c, vImage);
+                    edges.add(new Edge(edge));
                     grid[r][c]=127;
                 }
             }
         }
-        System.out.println("total edges: " + edges.size());
     }
-
-    public void thing (ArrayList cardedges){
-//        for ()
-    }
-
-
-     public boolean pointAlreadyFound(ArrayList<Edge> edges, int r, int c) {
-         for(Edge edge : edges){
-                 if(edge.containsPoint(r, c)) return true;
-         }
-         return false;
-     }
 
 
     @Override
