@@ -16,8 +16,12 @@ public class Edge {
         edge.add(e);
     }
 
+
     public ArrayList<int[]> getEdgePoints() {
         return edge;
+    }
+    public int size(){
+        return edge.size();
     }
 
     private boolean checkIfEdgeMakesCardShape() {
